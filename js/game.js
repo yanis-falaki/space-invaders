@@ -16,6 +16,7 @@ let game = new Phaser.Game(config);
 
 let bg, bg2
 let bgBuffer = 100
+let player
 
 function preload() {
   this.load.image('background', '/assets/blue_bg.png')
@@ -34,7 +35,11 @@ function create() {
   bg.body.velocity.y = 100
   bg2.body.velocity.y = 100
 
+  player = this.add.sprite(400, 550, 'player').setScale(0.65)
+  this.physics.add.existing(player)
+  player.body.collideWorldBounds = true
 
+  cursors = this.input.keyboard.createCursorKeys()
 }
 
 function update() {
@@ -42,6 +47,20 @@ function update() {
     RepositionBG(bg)
   } else if (bg2.y > config.height) {
     RepositionBG(bg2)
+  }
+
+  player.body.velocity.x = 0
+  player.body.velocity.y = 0
+
+  if (cursors.left.isDown) {
+    player.body.velocity.x = -300
+  } else if (cursors.right.isDown) {
+    player.body.velocity.x = 300
+  }
+  if (cursors.up.isDown) {
+    player.body.velocity.y = -200
+  } else if (cursors.down.isDown) {
+    player.body.velocity.y = 200
   }
 }
 
