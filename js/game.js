@@ -66,13 +66,21 @@ function update() {
 
 function startWave(wave) {
   let scene = game.scene.scenes[0]
-  let numberEnemies = 1
-  for (let i = 0; i < numberEnemies; i++) {
-    let enemy = new Enemy(wave.waypoints[0].x, wave.waypoints[0].y)
-    scene.enemies.add(enemy)
+  spawnEnemies(wave.numberEnemies)
 
-    for (let j=1; j < wave.waypoints.length; j++) {
-      enemy.queueWaypoint(wave.waypoints[j])
+  function spawnEnemies(enemiesToAdd) {
+    console.log(enemiesToAdd)
+    if (enemiesToAdd > 0) {
+      let enemy = new Enemy(wave.waypoints[0].x, wave.waypoints[0].y)
+      scene.enemies.add(enemy)
+
+      for (let j=1; j < wave.waypoints.length; j++) {
+        enemy.queueWaypoint(wave.waypoints[j])
+      }
+
+      setTimeout(() => spawnEnemies(enemiesToAdd - 1), wave.timeBetweenSpawn * 1000)
+    } else if (enemiesToAdd <= 0) {
+      return
     }
   }
 }
@@ -105,7 +113,6 @@ function fireDown() {
   scene.physics.add.existing(laser)
   scene.lasers.add(laser)
   laserChecking = true
-
   laser.body.velocity.y = -600
 } 
 
@@ -138,8 +145,6 @@ class Enemy extends Phaser.GameObjects.Sprite {
 
   // Found out that there's a tween function which could've simplified the movement, but I already made this.
   goTo(targetX, targetY, duration) {
-    console.log("initlized goto")
-    console.log(this.waypointQueue)
     this.travelling = true
     const startPosition = new Phaser.Math.Vector2(this.x, this.y);
     const targetPositionVector = new Phaser.Math.Vector2(targetX, targetY);
@@ -175,7 +180,7 @@ class Enemy extends Phaser.GameObjects.Sprite {
 // Level/Wave Declarations
 const wave1 = {
   numberEnemies: 5,
-  timeBetweenSpawn: 0.5,
+  timeBetweenSpawn: 0.75,
   waypoints: [
     {
       x: 0,
@@ -192,5 +197,5 @@ const wave1 = {
       y: 0,
       speed: 5
     }
-  ]
+  ],
 }
