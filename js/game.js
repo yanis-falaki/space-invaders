@@ -62,18 +62,14 @@ class GameScene extends Phaser.Scene
   }
 
   update() {
-    
     scrollBackground(this)
     this.enemies.children.each((enemy) => {
       enemy.update()
     }, this);
     this.playerMovement()
-    
 
-    if (true) {
-      this.physics.add.overlap(this.enemies, this.lasers, this.hitEnemy, null, this);
-      this.physics.add.overlap(this.player, this.enemyLasers, this.hit, null, this);
-    }
+    this.physics.add.overlap(this.enemies, this.lasers, this.hitEnemy, null, this);
+    this.physics.add.overlap(this.player, this.enemyLasers, this.hit, null, this);
   }
 
   startWave(wave) {
@@ -98,8 +94,14 @@ class GameScene extends Phaser.Scene
   }
 
   hit(enemy, laser) {
+    this.health -= laser.damage
     laser.destroy()
-    console.log("Hit!")
+
+    if (this.health <= 0) {
+      this.health = 0
+      this.player.destroy
+      console.log("Game Over!")
+    } else { this.healthText.text = 'HP: ' + this.health }
   }
 
   playerMovement() {
