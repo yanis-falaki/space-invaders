@@ -67,9 +67,19 @@ class GameScene extends Phaser.Scene
       enemy.update()
     }, this);
     this.playerMovement()
+    this.destroyLasers()
 
     this.physics.add.overlap(this.enemies, this.lasers, this.hitEnemy, null, this);
     this.physics.add.overlap(this.player, this.enemyLasers, this.hit, null, this);
+  }
+
+  destroyLasers() {
+    this.lasers.children.each((laser) => {
+      if (laser.y <= -30) { laser.destroy() }
+    }, this)
+    this.enemyLasers.children.each((laser) => {
+      if (laser.y >= config.height + 30) { laser.destroy() }
+    }, this)
   }
 
   startWave(wave) {
@@ -93,13 +103,12 @@ class GameScene extends Phaser.Scene
     laser.destroy()
   }
 
-  hit(enemy, laser) {
+  hit(player, laser) {
     this.health -= laser.damage
     laser.destroy()
-
     if (this.health <= 0) {
       this.health = 0
-      this.player.destroy
+      player.destroy
       console.log("Game Over!")
     } else { this.healthText.text = 'HP: ' + this.health }
   }
