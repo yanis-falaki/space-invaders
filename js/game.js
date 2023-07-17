@@ -21,7 +21,7 @@ let cursors
 let enemies
 let lasers
 let currentLevel = 1
-let score
+let score = 0
 
 function preload() {
   this.load.image('background', '/assets/blue_bg.png')
@@ -50,6 +50,8 @@ function create() {
 
   this.enemies = this.physics.add.group()
 
+  scoreText = this.add.text(16, 16, '', { fontSize: '32px', fill: '#fff' })
+  scoreText.text = 'Score: ' + score
   level1()
 }
 
@@ -70,9 +72,8 @@ function startWave(wave) {
   spawnEnemies(wave.numberEnemies)
 
   function spawnEnemies(enemiesToAdd) {
-    console.log(enemiesToAdd)
     if (enemiesToAdd > 0) {
-      let enemy = new Enemy(wave.waypoints[0].x, wave.waypoints[0].y)
+      let enemy = new EnemyBlue(wave.waypoints[0].x, wave.waypoints[0].y)
       scene.enemies.add(enemy)
 
       for (let j=1; j < wave.waypoints.length; j++) {
@@ -89,7 +90,8 @@ function startWave(wave) {
 function blowUpEnemy(enemy, laser) {
   enemy.destroy()
   laser.destroy()
-  return 0
+  score += 10
+  scoreText.text = 'Score: ' + score
 }
 
 function playerMovement() {
@@ -129,10 +131,9 @@ function repositionBG(background) {
   background.y = 5 - background.body.height - bgBuffer
 }
 
-
 class Enemy extends Phaser.GameObjects.Sprite {
-  constructor(x, y) {
-    super(game.scene.scenes[0], x, y, 'enemyRed');
+  constructor(x, y, sprite) {
+    super(game.scene.scenes[0], x, y, sprite);
     let scene = game.scene.scenes[0]
     this.setScale(0.65)
     scene.add.existing(this);
@@ -174,6 +175,18 @@ class Enemy extends Phaser.GameObjects.Sprite {
       this.travelling = false
     }
     this.checkWaypoints()
+  }
+}
+
+class EnemyRed extends Enemy {
+  constructor(x, y) {
+    super(x, y, 'enemyRed')
+  }
+}
+
+class EnemyBlue extends Enemy {
+  constructor(x, y) {
+    super(x, y, 'enemyBlue')
   }
 }
 
