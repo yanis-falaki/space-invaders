@@ -21,6 +21,7 @@ let cursors
 let enemies
 let lasers
 let currentLevel = 1
+let score
 
 function preload() {
   this.load.image('background', '/assets/blue_bg.png')
@@ -49,7 +50,7 @@ function create() {
 
   this.enemies = this.physics.add.group()
 
-  startWave(wave1)
+  level1()
 }
 
 function update() {
@@ -177,8 +178,15 @@ class Enemy extends Phaser.GameObjects.Sprite {
 }
 
 
-// Level/Wave Declarations
-const wave1 = {
+// Level Declarations
+function level1() {
+  startWave(l1_w1)
+  setTimeout(() => startWave(l1_w2), 10000)
+  setTimeout(() => startWave(l1_w3), 14000)
+}
+
+// Wave Declarations
+const l1_w1 = {
   numberEnemies: 5,
   timeBetweenSpawn: 0.75,
   waypoints: [
@@ -196,6 +204,50 @@ const wave1 = {
       x: 800,
       y: 0,
       speed: 5
+    }
+  ],
+}
+
+const l1_w2 = {
+  numberEnemies: 5,
+  timeBetweenSpawn: 0.75,
+  waypoints: [
+    {
+      x: 400,
+      y: -30,
+      speed: null
+    },
+    {
+      x: 50,
+      y: 200,
+      speed: 0.5
+    },
+    {
+      x: 500,
+      y: 300,
+      speed: 2
+    }
+  ],
+}
+
+const l1_w3 = {
+  numberEnemies: 5,
+  timeBetweenSpawn: 0.75,
+  waypoints: [
+    {
+      x: 815,
+      y: 200,
+      speed: null
+    },
+    {
+      x: 15,
+      y: 300,
+      speed: 2
+    },
+    {
+      x: 815,
+      y: 400,
+      speed: 2
     }
   ],
 }
