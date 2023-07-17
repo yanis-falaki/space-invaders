@@ -35,9 +35,20 @@ class GameScene extends Phaser.Scene
     this.load.image('laserGreen', '/assets/laserGreen.png')
     this.load.image('laserBlue', '/assets/laserBlue.png')
     this.load.image('laserRed', '/assets/laserRed.png')
+    this.load.audio('explodeEnemy', 'assets/low_blip.wav')
+    this.load.audio('blip', 'assets/blip.wav')
+    this.load.audio('damage', 'assets/damage.wav')
+    this.load.audio('backgroundMusic', 'assets/music.mp3')
   }
 
   create() {
+    // Sound effects
+    this.explodeEnemySound = this.sound.add('explodeEnemy')
+    this.blipSound = this.sound.add('blip')
+    this.damageSound = this.sound.add('damage')
+    this.backgroundMusic = this.sound.add('backgroundMusic')
+    this.backgroundMusic.play({ loop: true, volume: 0.15 });
+
     // Adding 2 background objects to make a scrolling background.
     this.bg = this.add.sprite(config.width/2, 0 - bgBuffer, 'background').setScale(3.5).setOrigin(0.5, 0)
     this.physics.add.existing(this.bg)
@@ -116,7 +127,10 @@ class GameScene extends Phaser.Scene
       this.health = 0
       player.destroy
       console.log("Game Over!")
-    } else { this.healthText.text = 'HP: ' + this.health }
+    } else { 
+      this.healthText.text = 'HP: ' + this.health
+      this.damageSound.play()
+    }
   }
 
   playerMovement() {
@@ -237,9 +251,10 @@ class Enemy extends Phaser.GameObjects.Sprite {
     this.health -= damage
     if (this.health <= 0) {
       this.destroy()
+      scene.explodeEnemySound.play()
       scene.score += this.score
       scene.scoreText.text = 'Score: ' + scene.score
-    }
+    } else { scene.blipSound.play() }
   }
 }
 
