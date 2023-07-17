@@ -1,144 +1,146 @@
-let config = {
-    type: Phaser.AUTO,
-    width: 800,
-    height: 600,
-    scene: {
-        preload: preload,
-        create: create,
-        update: update
-    },
-    physics: {
-      default: 'arcade'
-    }
-  };
-
-let game = new Phaser.Game(config);
-
-let bg, bg2
 let bgBuffer = 100
-let player
-let cursors
-let enemies
-let enemyLasers
-let lasers
-let currentLevel = 1
-let score = 0
-let health = 100
 
-function preload() {
-  this.load.image('background', '/assets/blue_bg.png')
-  this.load.image('player', '/assets/player.png')
-  this.load.image('enemyRed', '/assets/enemyRed.png')
-  this.load.image('enemyBlue', '/assets/enemyBlue.png')
-  this.load.image('laserGreen', '/assets/laserGreen.png')
-  this.load.image('laserBlue', '/assets/laserBlue.png')
-  this.load.image('laserRed', '/assets/laserRed.png')
+// Level Declarations
+function level1(scene) {
+  scene.startWave(l1_w1)
+  setTimeout(() => scene.startWave(l1_w2), 10000)
+  setTimeout(() => scene.startWave(l1_w3), 14000)
 }
 
-function create() {
-  // Adding 2 background objects to make a scrolling background.
-  bg = this.add.sprite(config.width/2, 0 - bgBuffer, 'background').setScale(3.5).setOrigin(0.5, 0)
-  this.physics.add.existing(bg)
-  bg2 = this.add.sprite(config.width/2, 5 - bg.body.height - bgBuffer, 'background').setScale(3.5).setOrigin(0.5, 0)
-  this.physics.add.existing(bg2)
-  bg.body.velocity.y = 100
-  bg2.body.velocity.y = 100
+class GameScene extends Phaser.Scene 
+{
+  // Using this to keep track of global variables
+  player
+  cursors
+  enemies
+  enemyLasers
+  lasers
+  currentLevel = 1
+  score = 0
+  health = 100
+  bg
+  bg2
 
-  player = this.add.sprite(400, 550, 'player').setScale(0.65)
-  this.physics.add.existing(player)
-  player.body.collideWorldBounds = true
-  cursors = this.input.keyboard.createCursorKeys()
-  this.lasers = this.physics.add.group()
-  fire = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE, true, true);
-  fire.on('down', () => {fireDown()})
-
-  this.enemyLasers = this.physics.add.group()
-  this.enemies = this.physics.add.group()
-
-  scoreText = this.add.text(16, 16, '', { fontSize: '32px', fill: '#fff' })
-  scoreText.text = 'Score: ' + score
-  healthText = this.add.text(config.width - 16, 16, '', { fontSize: '32px', fill: '#fff' }).setOrigin(1, 0)
-  healthText.text = 'HP: ' + health
-
-  level1()
-}
-
-function update() {
-  scrollBackground()
-  this.enemies.children.each((enemy) => {
-    enemy.update()
-  }, this);
-  playerMovement()
-
-  if (this.enemies && this.lasers && this.enemyLasers) {
-    this.physics.add.overlap(this.enemies, this.lasers, blowUpEnemy, null, this);
+  preload() {
+    this.load.image('background', '/assets/blue_bg.png')
+    this.load.image('player', '/assets/player.png')
+    this.load.image('enemyRed', '/assets/enemyRed.png')
+    this.load.image('enemyBlue', '/assets/enemyBlue.png')
+    this.load.image('laserGreen', '/assets/laserGreen.png')
+    this.load.image('laserBlue', '/assets/laserBlue.png')
+    this.load.image('laserRed', '/assets/laserRed.png')
   }
-}
 
-function startWave(wave) {
-  let scene = game.scene.scenes[0]
-  spawnEnemies(wave.enemies.length)
+  create() {
+    // Adding 2 background objects to make a scrolling background.
+    this.bg = this.add.sprite(config.width/2, 0 - bgBuffer, 'background').setScale(3.5).setOrigin(0.5, 0)
+    this.physics.add.existing(this.bg)
+    this.bg2 = this.add.sprite(config.width/2, 5 - this.bg.body.height - bgBuffer, 'background').setScale(3.5).setOrigin(0.5, 0)
+    this.physics.add.existing(this.bg2)
+    this.bg.body.velocity.y = 100
+    this.bg2.body.velocity.y = 100
 
+    this.player = this.add.sprite(400, 550, 'player')
+    this.player.setScale(0.65)
+    this.physics.add.existing(this.player)
+    this.player.body.collideWorldBounds = true
 
-  function spawnEnemies(enemiesToAdd) {
-    if (enemiesToAdd > 0) {
-      let enemy = new wave.enemies[wave.enemies.length - enemiesToAdd](wave.waypoints[0].x, wave.waypoints[0].y)
-      scene.enemies.add(enemy)
+    this.cursors = this.input.keyboard.createCursorKeys()
+    this.lasers = this.physics.add.group()
+    this.fire = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE, true, true);
+    this.fire.on('down', () => {this.fireDown()})
 
-      for (let j=1; j < wave.waypoints.length; j++) {
-        enemy.queueWaypoint(wave.waypoints[j])
-      }
+    this.enemyLasers = this.physics.add.group()
+    this.enemies = this.physics.add.group()
 
-      setTimeout(() => spawnEnemies(enemiesToAdd - 1), wave.timeBetweenSpawn * 1000)
-    } else if (enemiesToAdd <= 0) { return }
+    this.scoreText = this.add.text(16, 16, '', { fontSize: '32px', fill: '#fff' })
+    this.scoreText.text = 'Score: ' + this.score
+    this.healthText = this.add.text(config.width - 16, 16, '', { fontSize: '32px', fill: '#fff' }).setOrigin(1, 0)
+    this.healthText.text = 'HP: ' + this.health
+
+    level1(this)
   }
-}
 
-function blowUpEnemy(enemy, laser) {
-  enemy.destroy()
-  laser.destroy()
-  score += 10
-  scoreText.text = 'Score: ' + score
-}
+  update() {
+    
+    scrollBackground(this)
+    this.enemies.children.each((enemy) => {
+      enemy.update()
+    }, this);
+    this.playerMovement()
+    
 
-function playerMovement() {
-  player.body.velocity.x = 0
-  player.body.velocity.y = 0
-
-  if (cursors.left.isDown) {
-    player.body.velocity.x = -450
-  } else if (cursors.right.isDown) {
-    player.body.velocity.x = 450
+    if (true) {
+      this.physics.add.overlap(this.enemies, this.lasers, this.hitEnemy, null, this);
+      this.physics.add.overlap(this.player, this.enemyLasers, this.hit, null, this);
+    }
   }
-  if (cursors.up.isDown && player.y > config.height/4 * 3) {
-    player.body.velocity.y = -300
-  } else if (cursors.down.isDown) {
-    player.body.velocity.y = 300
+
+  startWave(wave) {
+    spawnEnemies.call(this, wave.enemies.length)
+    function spawnEnemies(enemiesToAdd) {
+      if (enemiesToAdd > 0) {
+        let enemy = new wave.enemies[wave.enemies.length - enemiesToAdd](wave.waypoints[0].x, wave.waypoints[0].y)
+        this.enemies.add(enemy)
+
+        for (let j=1; j < wave.waypoints.length; j++) {
+          enemy.queueWaypoint(wave.waypoints[j])
+        }
+
+        setTimeout(() => spawnEnemies.call(this, enemiesToAdd - 1), wave.timeBetweenSpawn * 1000)
+      } else if (enemiesToAdd <= 0) { return }
+    }
   }
+
+  hitEnemy(enemy, laser) {
+    enemy.hit(laser.damage)
+    laser.destroy()
+  }
+
+  hit(enemy, laser) {
+    laser.destroy()
+    console.log("Hit!")
+  }
+
+  playerMovement() {
+    this.player.body.velocity.x = 0
+    this.player.body.velocity.y = 0
+
+    if (this.cursors.left.isDown) {
+      this.player.body.velocity.x = -450
+    } else if (this.cursors.right.isDown) {
+      this.player.body.velocity.x = 450
+    }
+    if (this.cursors.up.isDown && this.player.y > config.height/4 * 3) {
+      this.player.body.velocity.y = -300
+    } else if (this.cursors.down.isDown) {
+      this.player.body.velocity.y = 300
+    }
+  }
+
+  fireDown() {
+    let laser = this.add.sprite(this.player.x, this.player.y - 30, 'laserGreen').setScale(0.65)
+    laser.damage = 10
+    this.physics.add.existing(laser)
+    this.lasers.add(laser)
+    laser.body.velocity.y = -800
+  } 
 }
 
-function fireDown() {
-  let scene = game.scene.scenes[0]
-  let laser = scene.add.sprite(player.x, player.y - 30, 'laserGreen').setScale(0.65)
-  scene.physics.add.existing(laser)
-  scene.lasers.add(laser)
-  laser.body.velocity.y = -800
-} 
-
-function scrollBackground() {
-  if (bg.y > config.height) {
-    repositionBG(bg)
-  } else if (bg2.y > config.height) {
-    repositionBG(bg2)
+function scrollBackground(scene){
+  if (scene.bg.y > config.height) {
+    repositionBG(scene.bg)
+  } else if (scene.bg2.y > config.height) {
+    repositionBG(scene.bg2)
   }
-}
 
-function repositionBG(background) {
-  background.y = 5 - background.body.height - bgBuffer
+  function repositionBG(background) {
+    background.y = 5 - background.body.height - bgBuffer
+  }
 }
 
 class Enemy extends Phaser.GameObjects.Sprite {
-  constructor(x, y, sprite, laserSprite, timeToShoot, damage, laserSpeed) {
+  constructor(x, y, sprite, laserSprite, timeToShoot, damage, laserSpeed, health, score) {
     super(game.scene.scenes[0], x, y, sprite);
     let scene = game.scene.scenes[0]
     this.setScale(0.65)
@@ -149,6 +151,8 @@ class Enemy extends Phaser.GameObjects.Sprite {
     this.laserSprite = laserSprite
     this.damage = damage
     this.laserSpeed = laserSpeed
+    this.health = health
+    this.score = score
   }
 
   travelling = false
@@ -210,25 +214,28 @@ class Enemy extends Phaser.GameObjects.Sprite {
     scene.enemyLasers.add(laser)
     laser.body.velocity.y = this.laserSpeed
   }
+
+  hit(damage) {
+    let scene = game.scene.scenes[0]
+    this.health -= damage
+    if (this.health <= 0) {
+      this.destroy()
+      scene.score += this.score
+      scene.scoreText.text = 'Score: ' + scene.score
+    }
+  }
 }
 
 class EnemyRed extends Enemy {
   constructor(x, y) {
-    super(x, y, 'enemyRed', 'laserRed', [1, 5], 5, 500)
+    super(x, y, 'enemyRed', 'laserRed', [1, 5], 5, 500, 10, 10)
   }
 }
 
 class EnemyBlue extends Enemy {
   constructor(x, y) {
-    super(x, y, 'enemyBlue', 'laserBlue', [1, 6], 10, 800)
+    super(x, y, 'enemyBlue', 'laserBlue', [1, 6], 10, 800, 20, 20)
   }
-}
-
-// Level Declarations
-function level1() {
-  startWave(l1_w1)
-  setTimeout(() => startWave(l1_w2), 10000)
-  setTimeout(() => startWave(l1_w3), 14000)
 }
 
 // Wave Declarations
@@ -297,3 +304,15 @@ const l1_w3 = {
     }
   ],
 }
+
+let config = {
+  type: Phaser.AUTO,
+  width: 800,
+  height: 600,
+  scene: GameScene,
+  physics: {
+    default: 'arcade'
+  }
+};
+
+let game = new Phaser.Game(config);
