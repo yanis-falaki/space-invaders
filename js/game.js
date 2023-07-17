@@ -7,6 +7,12 @@ async function level1(scene) {
   scene.startWave(l1_w2)
   await delay(4)
   scene.startWave(l1_w3)
+  await delay(8)
+  scene.startWave(l1_w4)
+  await delay(3)
+  scene.startWave(l1_w5)
+  await delay(5)
+  scene.startWave(l1_w6)
 }
 
 function delay(s) {
@@ -78,10 +84,10 @@ class GameScene extends Phaser.Scene
     level1(this)
   }
 
-  update() {
+  update(time, delta) {
     scrollBackground(this)
     this.enemies.children.each((enemy) => {
-      enemy.update()
+      enemy.update(time, delta)
     }, this);
     this.playerMovement()
     this.destroyLasers()
@@ -188,10 +194,11 @@ class Enemy extends Phaser.GameObjects.Sprite {
 
   travelling = false
   targetPosition
-  threshold = 0.4
+  threshold = 15
   waypointQueue = []
   waitingToShoot = true
   firstShot = true
+  isPositive = [false, false]
 
   // Found out that there's a tween function which could've simplified the movement, but I already made this.
   goTo(targetX, targetY, duration) {
@@ -203,6 +210,8 @@ class Enemy extends Phaser.GameObjects.Sprite {
     const direction = targetPositionVector.subtract(startPosition).normalize();
     this.body.setVelocity(direction.x * velocity, direction.y * velocity);
     this.targetPosition = [targetX, targetY]
+    if (this.x - targetX > 0) { this.isPositive[0] = true } else { this.isPositive[0] = false }
+    if (this.y - targetY > 0) { this.isPositive[1] = true } else { this.isPositive[1] = false }
   }
 
   queueWaypoint(waypoint) {
@@ -210,18 +219,49 @@ class Enemy extends Phaser.GameObjects.Sprite {
   }
 
   checkWaypoints() {
-    if (this.travelling === false && this.waypointQueue.length > 0) {
+    if (this.travelling == false && this.waypointQueue.length > 0) {
       // waypointQueue is an array of waypoints, who themselves are arrays containing x, y, and speed elements
       this.goTo(this.waypointQueue[0][0], this.waypointQueue[0][1], this.waypointQueue[0][2])
       this.waypointQueue.shift()
     }
   }
 
-  update() {
-    if (this.travelling === true && Math.abs(this.x - this.targetPosition[0]) < this.threshold && Math.abs(this.y - this.targetPosition[1]) < this.threshold) {
-      this.body.setVelocity(0, 0)
-      this.travelling = false
+  checkIfPast() {
+  // Need to use JSON.stringify() because switch statement uses strict comparison
+  if (this.travelling == true)
+  {
+    switch (JSON.stringify(this.isPositive))
+    {
+      case JSON.stringify([false, false]):
+        if (this.x - this.targetPosition[0] >= 3 && this.y - this.targetPosition[1] >= 3) {
+          this.body.setVelocity(0, 0)
+          this.travelling = false
+        }
+        break
+      case JSON.stringify([false, true]):
+        if (this.x - this.targetPosition[0] >= 3 && this.y - this.targetPosition[1] <= 3) {
+          this.body.setVelocity(0, 0)
+          this.travelling = false
+        }
+        break
+      case JSON.stringify([true, false]):
+        if (this.x - this.targetPosition[0] <= 3 && this.y - this.targetPosition[1] >= 3) {
+          this.body.setVelocity(0, 0)
+          this.travelling = false
+        }
+        break
+      case JSON.stringify([true, true]):
+        if (this.x - this.targetPosition[0] <= 3 && this.y - this.targetPosition[1] <= 3) {
+          this.body.setVelocity(0, 0)
+          this.travelling = false
+        }
+        break
     }
+  }
+  }
+
+  update() {
+    this.checkIfPast()
     this.checkWaypoints()
 
     // Shooting logic
@@ -275,21 +315,9 @@ const l1_w1 = {
   enemies: [EnemyRed, EnemyRed, EnemyRed, EnemyRed, EnemyBlue],
   timeBetweenSpawn: 1,
   waypoints: [
-    {
-      x: 0,
-      y: 0,
-      speed: null
-    },
-    {
-      x: 300,
-      y: 400,
-      speed: 1
-    },
-    {
-      x: 800,
-      y: 0,
-      speed: 5
-    }
+    { x: 0, y: 0, speed: null },
+    { x: 300, y: 400, speed: 1 },
+    { x: 800, y: 0, speed: 5 }
   ],
 }
 
@@ -297,21 +325,9 @@ const l1_w2 = {
   enemies: [EnemyRed, EnemyRed, EnemyRed, EnemyRed],
   timeBetweenSpawn: 1,
   waypoints: [
-    {
-      x: 840,
-      y: -30,
-      speed: null
-    },
-    {
-      x: 50,
-      y: 200,
-      speed: 2
-    },
-    {
-      x: 500,
-      y: 300,
-      speed: 2
-    }
+    { x: 840, y: -30, speed: null },
+    { x: 50, y: 200, speed: 2 },
+    { x: 500, y: 300, speed: 2 }
   ],
 }
 
@@ -319,22 +335,41 @@ const l1_w3 = {
   enemies: [EnemyBlue, EnemyBlue, EnemyBlue],
   timeBetweenSpawn: 1,
   waypoints: [
-    {
-      x: 815,
-      y: 200,
-      speed: null
-    },
-    {
-      x: 15,
-      y: 300,
-      speed: 4
-    },
-    {
-      x: 815,
-      y: 400,
-      speed: 2
-    }
+    { x: 815, y: 200, speed: null },
+    { x: 15, y: 300, speed: 4 },
+    { x: 815, y: 400, speed: 2 }
   ],
+}
+
+const l1_w4 = {
+  enemies: [EnemyBlue, EnemyRed, EnemyBlue, EnemyRed],
+  timeBetweenSpawn: 1,
+  waypoints: [
+    { x: -10, y: 0, speed: null },
+    { x: 400, y: 150, speed: 1.2 },
+    { x: -10, y: 300, speed: 1.2 },
+  ]
+}
+
+const l1_w5 = {
+  enemies: [EnemyBlue, EnemyRed, EnemyBlue, EnemyRed],
+  timeBetweenSpawn: 1,
+  waypoints: [
+    { x: 810, y: 0, speed: null },
+    { x: 400, y: 150, speed: 1.2 },
+    { x: 810, y: 300, speed: 1.2 },
+  ]
+}
+
+const l1_w6 = {
+  enemies: [EnemyRed, EnemyBlue, EnemyBlue, EnemyRed, EnemyBlue, EnemyRed],
+  timeBetweenSpawn: 1,
+  waypoints: [
+    { x: 820, y: 20, speed: null },
+    { x: 80, y: 100, speed: 0.75 },
+    { x: 100, y: 200, speed: 2 },
+    { x: 820, y: 150, speed: 1.5 },
+  ]
 }
 
 let config = {
