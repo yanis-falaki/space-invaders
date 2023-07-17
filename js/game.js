@@ -18,6 +18,9 @@ let bg, bg2
 let bgBuffer = 100
 let player
 let cursors
+let enemies
+let lasers
+let currentLevel = 1
 
 function preload() {
   this.load.image('background', '/assets/blue_bg.png')
@@ -40,20 +43,47 @@ function create() {
   this.physics.add.existing(player)
   player.body.collideWorldBounds = true
   cursors = this.input.keyboard.createCursorKeys()
+  this.lasers = this.physics.add.group()
+  fire = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE, true, true);
+  fire.on('down', () => {fireDown()})
 
   this.enemies = this.physics.add.group()
-  let Enemy1 = new Enemy(400, 300)
-  this.enemies.add(Enemy1)
-  Enemy1.goTo(200, 300, 1)
+
+  startWave(wave1)
 }
 
 function update() {
   scrollBackground()
-
   this.enemies.children.each((enemy) => {
     enemy.update()
   }, this);
+  playerMovement()
 
+  if (this.enemies && this.lasers) {
+    this.physics.add.overlap(this.enemies, this.lasers, blowUpEnemy, null, this);
+  }
+}
+
+function startWave(wave) {
+  let scene = game.scene.scenes[0]
+  let numberEnemies = 1
+  for (let i = 0; i < numberEnemies; i++) {
+    let enemy = new Enemy(wave.waypoints[0].x, wave.waypoints[0].y)
+    scene.enemies.add(enemy)
+
+    for (let j=1; j < wave.waypoints.length; j++) {
+      enemy.queueWaypoint(wave.waypoints[j])
+    }
+  }
+}
+
+function blowUpEnemy(enemy, laser) {
+  enemy.destroy()
+  laser.destroy()
+  return 0
+}
+
+function playerMovement() {
   player.body.velocity.x = 0
   player.body.velocity.y = 0
 
@@ -68,6 +98,16 @@ function update() {
     player.body.velocity.y = 200
   }
 }
+
+function fireDown() {
+  let scene = game.scene.scenes[0]
+  let laser = scene.add.sprite(player.x, player.y - 30, 'laserGreen').setScale(0.65)
+  scene.physics.add.existing(laser)
+  scene.lasers.add(laser)
+  laserChecking = true
+
+  laser.body.velocity.y = -600
+} 
 
 function scrollBackground() {
   if (bg.y > config.height) {
@@ -89,14 +129,17 @@ class Enemy extends Phaser.GameObjects.Sprite {
     this.setScale(0.65)
     scene.add.existing(this);
     scene.physics.world.enable(this);
-    console.log(this)
   }
 
   travelling = false
   targetPosition
   threshold = 0.4
+  waypointQueue = []
 
+  // Found out that there's a tween function which could've simplified the movement, but I already made this.
   goTo(targetX, targetY, duration) {
+    console.log("initlized goto")
+    console.log(this.waypointQueue)
     this.travelling = true
     const startPosition = new Phaser.Math.Vector2(this.x, this.y);
     const targetPositionVector = new Phaser.Math.Vector2(targetX, targetY);
@@ -104,8 +147,19 @@ class Enemy extends Phaser.GameObjects.Sprite {
     const velocity = distance / duration;
     const direction = targetPositionVector.subtract(startPosition).normalize();
     this.body.setVelocity(direction.x * velocity, direction.y * velocity);
-
     this.targetPosition = [targetX, targetY]
+  }
+
+  queueWaypoint(waypoint) {
+    this.waypointQueue.push([waypoint.x, waypoint.y, waypoint.speed])
+  }
+
+  checkWaypoints() {
+    if (this.travelling === false && this.waypointQueue.length > 0) {
+      // waypointQueue is an array of waypoints, who themselves are arrays containing x, y, and speed elements
+      this.goTo(this.waypointQueue[0][0], this.waypointQueue[0][1], this.waypointQueue[0][2])
+      this.waypointQueue.shift()
+    }
   }
 
   update() {
@@ -113,5 +167,30 @@ class Enemy extends Phaser.GameObjects.Sprite {
       this.body.setVelocity(0, 0)
       this.travelling = false
     }
+    this.checkWaypoints()
   }
+}
+
+
+// Level/Wave Declarations
+const wave1 = {
+  numberEnemies: 5,
+  timeBetweenSpawn: 0.5,
+  waypoints: [
+    {
+      x: 0,
+      y: 0,
+      speed: null
+    },
+    {
+      x: 300,
+      y: 400,
+      speed: 1
+    },
+    {
+      x: 800,
+      y: 0,
+      speed: 5
+    }
+  ]
 }
