@@ -1,10 +1,16 @@
 let bgBuffer = 100
 
 // Level Declarations
-function level1(scene) {
+async function level1(scene) {
   scene.startWave(l1_w1)
-  setTimeout(() => scene.startWave(l1_w2), 10000)
-  setTimeout(() => scene.startWave(l1_w3), 14000)
+  await delay(10)
+  scene.startWave(l1_w2)
+  await delay(4)
+  scene.startWave(l1_w3)
+}
+
+function delay(s) {
+  return new Promise(resolve => setTimeout(resolve, s*1000));
 }
 
 class GameScene extends Phaser.Scene 
