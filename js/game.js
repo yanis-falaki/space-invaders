@@ -45,9 +45,27 @@ class GameScene extends Phaser.Scene
     this.load.audio('blip', 'assets/blip.wav')
     this.load.audio('damage', 'assets/damage.wav')
     this.load.audio('backgroundMusic', 'assets/music.mp3')
+
+    //Explosion animation
+    for (let i = 1; i < 11; i++) {
+      this.load.image(`explosion_${i}`, `assets/explosion/Explosion_${i}.png`)
+    }
   }
 
   create() {
+
+    // Explosion animation
+    let explosionFrames = [];
+    for (let i = 1; i <= 10; i++) {
+      explosionFrames.push({ key: `explosion_${i}` });
+    }
+    this.anims.create({
+      key: 'explosion',
+      frames: explosionFrames,
+      frameRate: 14,
+      repeat: 0
+    })
+
     // Sound effects
     this.explodeEnemySound = this.sound.add('explodeEnemy')
     this.blipSound = this.sound.add('blip')
@@ -290,10 +308,15 @@ class Enemy extends Phaser.GameObjects.Sprite {
     let scene = game.scene.scenes[0]
     this.health -= damage
     if (this.health <= 0) {
-      this.destroy()
+      let explosionSprite = scene.add.sprite(this.x, this.y, 'explosion_1').setScale(0.25)
+      explosionSprite.play('explosion', false)
+      explosionSprite.once('animationcomplete', () => {
+        explosionSprite.destroy()
+      })
       scene.explodeEnemySound.play()
       scene.score += this.score
       scene.scoreText.text = 'Score: ' + scene.score
+      this.destroy()
     } else { scene.blipSound.play() }
   }
 }
