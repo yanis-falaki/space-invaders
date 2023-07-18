@@ -162,8 +162,14 @@ export class GameScene extends Phaser.Scene
     this.health -= laser.damage
     laser.destroy()
     if (this.health <= 0) {
+      this.explodeEnemySound.play()
+      let explosionSprite = this.add.sprite(player.x, player.y, 'explosion_1').setScale(0.25)
+      explosionSprite.play('explosion', false)
+      explosionSprite.once('animationcomplete', () => {
+          explosionSprite.destroy()
+      })
+      player.destroy()
       this.health = 0
-      player.destroy
       // LevelUpText() also handles win/loss
       this.levelUpText(-1)
     } else { 
@@ -173,6 +179,7 @@ export class GameScene extends Phaser.Scene
   }
 
   playerMovement() {
+    if (this.isLost) { return }
     this.player.body.velocity.x = 0
     this.player.body.velocity.y = 0
 
@@ -214,7 +221,7 @@ export class GameScene extends Phaser.Scene
       levelText.text = 'LEVEL ' + this.currentLevel
     }
     else if (gameState === 1) { 
-      this.winSound.play()
+      this.winSound.play({volume: 0.5})
       levelText.text = 'YOU WIN'
       transmissionTime = 5
       delayTime = 0.25
