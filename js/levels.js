@@ -2,8 +2,12 @@
 import { EnemyBlue, EnemyRed } from "./enemyClasses.js"
 import { delay } from "./helpers.js"
 
+export const levels = {
+  1: level1,
+}
+
 // Level Declarations
-export async function level1(scene) {
+async function level1(scene) {
     console.log(scene)
     scene.startWave(l1_w1)
     await delay(10)
@@ -28,6 +32,8 @@ export async function level1(scene) {
     enemy3.queueWaypoint({x: 450, y: 350, speed: 1})
     enemy3.queueWaypoint({x: 150, y: 150, speed: 1})
     enemy3.queueWaypoint({x: 350, y: 250, speed: 1})
+    scene.levelFinished = true
+    console.log(scene)
   }
 
 

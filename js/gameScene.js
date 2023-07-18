@@ -1,6 +1,6 @@
 import { EnemyBlue, EnemyRed } from "./EnemyClasses.js"
 import { scrollBackground, logAllEntities, delay } from "./helpers.js"
-import { level1 } from "./levels.js"
+import { levels } from "./levels.js"
 
 export class GameScene extends Phaser.Scene 
 {
@@ -11,6 +11,7 @@ export class GameScene extends Phaser.Scene
     this.health = 100
     this.score = 0
     this.currentLevel = 1
+    this.levelFinished = true
   }
   // Using this to keep track of global variables
   player
@@ -26,6 +27,7 @@ export class GameScene extends Phaser.Scene
   bgBuffer = 100
   canShoot
   shootCooldown
+  levelFinished
 
   preload() {
     this.canvas = this.sys.game.canvas;
@@ -41,6 +43,7 @@ export class GameScene extends Phaser.Scene
     this.load.audio('blip', 'assets/blip.wav')
     this.load.audio('damage', 'assets/damage.wav')
     this.load.audio('levelUp', 'assets/levelUp.wav')
+    this.load.audio('enemyShoot', 'assets/enemyShoot.wav')
 
     //Explosion animation
     for (let i = 1; i < 11; i++) {
@@ -92,8 +95,7 @@ export class GameScene extends Phaser.Scene
     this.healthText = this.add.text(this.canvas.width - 16, 16, '', { fontSize: '32px', fill: '#fff' }).setOrigin(1, 0)
     this.healthText.text = 'HP: ' + this.health
 
-    this.levelUpText()
-    level1(this)
+    this.nextLevel()
   }
 
   update(time, delta) {
@@ -107,6 +109,8 @@ export class GameScene extends Phaser.Scene
 
     this.physics.add.overlap(this.enemies, this.lasers, this.hitEnemy, null, this);
     this.physics.add.overlap(this.player, this.enemyLasers, this.hit, null, this);
+
+    this.nextLevel()
   }
 
   destroyLasers() {
@@ -187,9 +191,10 @@ export class GameScene extends Phaser.Scene
   }
 
   async levelUpText() {
+    console.log(this)
     let levelUpSound = this.sound.add('levelUp')
     levelUpSound.play({ volume: 0.30 })
-    let levelText = this.add.text(400, 300, '', { fontSize: '56px', fill: '#ff0000' }).setOrigin(0.5)
+    let levelText = this.add.text(400, 300, '', { fontSize: '56px', fill: '#ff0000', fontStyle: 'bold', }).setOrigin(0.5)
     levelText.text = 'LEVEL ' + this.currentLevel
     let transmissionTime = 2
     let delayTime = 0.1
@@ -204,5 +209,22 @@ export class GameScene extends Phaser.Scene
       await delay(delayTime)
     }
     levelText.destroy()
+  }
+
+  async nextLevel() {
+    if (!this.levelFinished || this.enemies.countActive(  ) > 0) return
+    this.levelFinished = false
+    if (this.currentLevel in levels) {
+      await delay(1.5)
+      this.levelUpText()
+      await delay(1)
+      const levelFunction = levels[this.currentLevel]
+      levelFunction(this)
+      this.currentLevel++
+    } else {
+      console.log("You WIN!")
+      await delay(1.5)
+      this.levelUpText()
+    }
   }
 }
