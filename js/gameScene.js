@@ -68,6 +68,7 @@ export class GameScene extends Phaser.Scene
     this.explodeEnemySound = this.sound.add('explodeEnemy')
     this.blipSound = this.sound.add('blip')
     this.damageSound = this.sound.add('damage')
+    this.enemyShootSound = this.sound.add('enemyShoot')
 
     // Adding 2 background objects to make a scrolling background.
     this.bg = this.add.sprite(this.canvas.width/2, 0 - this.bgBuffer, 'background').setScale(3.5).setOrigin(0.5, 0)
@@ -138,8 +139,8 @@ export class GameScene extends Phaser.Scene
     }
   }
 
-  createSimpleEnemy(x, y, type) {
-    let enemy = new type(this, x, y)
+  createSimpleEnemy(x, y, type, killOnEnd=false) {
+    let enemy = new type(this, x, y, killOnEnd)
     this.enemies.add(enemy)
     return enemy
   }
@@ -157,9 +158,9 @@ export class GameScene extends Phaser.Scene
       player.destroy
       console.log("Game Over!")
     } else { 
-      this.healthText.text = 'HP: ' + this.health
       this.damageSound.play()
     }
+    this.healthText.text = 'HP: ' + this.health
   }
 
   playerMovement() {

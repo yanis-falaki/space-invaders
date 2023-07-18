@@ -108,6 +108,7 @@ class Enemy extends Phaser.GameObjects.Sprite {
   shoot() {
       let scene = this.scene
       let laser = scene.add.sprite(this.x, this.y + 30, this.laserSprite).setScale(1, -1).setScale(0.65)
+      scene.enemyShootSound.play()
       laser.damage = this.damage
       scene.physics.add.existing(laser)
       scene.enemyLasers.add(laser)

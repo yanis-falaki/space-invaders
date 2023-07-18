@@ -15,7 +15,7 @@ async function level1(scene) {
     enemy1.queueWaypoint({x: 400, y: 300, speed: 2})
     await delay(5)
     scene.startWave(l1_w2)
-    let enemy2 = scene.createSimpleEnemy(0, -20, EnemyBlue)
+    let enemy2 = scene.createSimpleEnemy(0, -20, EnemyBlue, true)
     enemy2.queueWaypoint({x: 450, y: 150, speed: 1})
     enemy2.queueWaypoint({x: 350, y: 250, speed: 1})
     enemy2.queueWaypoint({x: 450, y: 350, speed: 1})
