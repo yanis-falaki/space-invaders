@@ -4,18 +4,28 @@ import { level1 } from "./levels.js"
 
 export class GameScene extends Phaser.Scene 
 {
+  constructor() {
+    super('GameScene')
+    this.canShoot = true
+    this.shootCooldown = 0.2
+    this.health = 100
+    this.score = 0
+    this.currentLevel = 1
+  }
   // Using this to keep track of global variables
   player
   cursors
   enemies
   enemyLasers
   lasers
-  currentLevel = 1
-  score = 0
-  health = 100
+  currentLevel
+  score
+  health
   bg
   bg2
   bgBuffer = 100
+  canShoot
+  shootCooldown
 
   preload() {
     this.canvas = this.sys.game.canvas;
@@ -55,8 +65,6 @@ export class GameScene extends Phaser.Scene
     this.explodeEnemySound = this.sound.add('explodeEnemy')
     this.blipSound = this.sound.add('blip')
     this.damageSound = this.sound.add('damage')
-    this.backgroundMusic = this.sound.add('backgroundMusic')
-    this.backgroundMusic.play({ loop: true, volume: 0.15 });
 
     // Adding 2 background objects to make a scrolling background.
     this.bg = this.add.sprite(this.canvas.width/2, 0 - this.bgBuffer, 'background').setScale(3.5).setOrigin(0.5, 0)
@@ -167,10 +175,14 @@ export class GameScene extends Phaser.Scene
   }
 
   fireDown() {
-    let laser = this.add.sprite(this.player.x, this.player.y - 30, 'laserGreen').setScale(0.65)
-    laser.damage = 10
-    this.physics.add.existing(laser)
-    this.lasers.add(laser)
-    laser.body.velocity.y = -800
+    if (this.canShoot == true) {
+      this.canShoot = false
+      let laser = this.add.sprite(this.player.x, this.player.y - 30, 'laserGreen').setScale(0.65)
+      laser.damage = 10
+      this.physics.add.existing(laser)
+      this.lasers.add(laser)
+      laser.body.velocity.y = -800
+      setTimeout(() => this.canShoot = true, this.shootCooldown*1000)
+    }
   } 
 }
