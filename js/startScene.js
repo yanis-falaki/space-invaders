@@ -1,4 +1,5 @@
 import { scrollBackground, logAllEntities } from "./helpers.js"
+import { GameScene } from "./gameScene.js";
 
 export class StartScene extends Phaser.Scene {
   bgBuffer = 100
@@ -26,8 +27,10 @@ export class StartScene extends Phaser.Scene {
     this.bg2.body.velocity.y = 100
 
     // Background Music
-    this.backgroundMusic = this.sound.add('backgroundMusic')
-    this.backgroundMusic.play({ loop: true, volume: 0.15 });
+    if (!this.hasOwnProperty('backgroundMusic')){
+      this.backgroundMusic = this.sound.add('backgroundMusic')
+      this.backgroundMusic.play({ loop: true, volume: 0.15 });
+    }
 
     this.title = this.add.text(400, 100, 'Starblaze Assault', {
       fontSize: '40px',
@@ -59,8 +62,8 @@ export class StartScene extends Phaser.Scene {
 
     button.on('pointerup', () => {
       button.setStyle({ color: '#ff0000' })
-      this.scene.stop('StartScene')
-      this.scene.start('GameScene')
+      this.scene.add('GameScene', GameScene, true)
+      //this.scene.start('GameScene')
     });
   }
 

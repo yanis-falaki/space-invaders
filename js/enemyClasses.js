@@ -83,26 +83,30 @@ class Enemy extends Phaser.GameObjects.Sprite {
     }
   }
 
-  update() {
-      this.checkIfPast()
-      this.checkWaypoints()
+  update(isLost) {
+    if (isLost) { 
+      this.destroy()
+      return
+     }
+    this.checkIfPast()
+    this.checkWaypoints()
 
-      // Shooting logic
-      if (this.firstShot) {
-      setTimeout(() => this.waitingToShoot = false, Phaser.Math.Between(400, 1000))
-      this.firstShot = false
-      }
+    // Shooting logic
+    if (this.firstShot) {
+    setTimeout(() => this.waitingToShoot = false, Phaser.Math.Between(400, 1000))
+    this.firstShot = false
+    }
 
-      if (!this.waitingToShoot) {
-      this.waitingToShoot = true
-      this.shoot()
-      setTimeout(() => this.waitingToShoot = false, Phaser.Math.Between(this.minTime, this.maxTime) * 1000)
-      }
+    if (!this.waitingToShoot) {
+    this.waitingToShoot = true
+    this.shoot()
+    setTimeout(() => this.waitingToShoot = false, Phaser.Math.Between(this.minTime, this.maxTime) * 1000)
+    }
 
-      // Self-destruct when finished wave
-      if (this.isWave == true && this.waypointQueue.length === 0 && !this.travelling) {
-      this.destroy();
-      }
+    // Self-destruct when finished wave
+    if (this.isWave == true && this.waypointQueue.length === 0 && !this.travelling) {
+    this.destroy();
+    }
   }
 
   shoot() {
