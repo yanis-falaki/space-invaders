@@ -1,5 +1,5 @@
 import { EnemyBlue, EnemyRed } from "./EnemyClasses.js"
-import { scrollBackground, logAllEntities } from "./helpers.js"
+import { scrollBackground, logAllEntities, delay } from "./helpers.js"
 import { level1 } from "./levels.js"
 
 export class GameScene extends Phaser.Scene 
@@ -40,7 +40,7 @@ export class GameScene extends Phaser.Scene
     this.load.audio('explodeEnemy', 'assets/low_blip.wav')
     this.load.audio('blip', 'assets/blip.wav')
     this.load.audio('damage', 'assets/damage.wav')
-    this.load.audio('backgroundMusic', 'assets/music.mp3')
+    this.load.audio('levelUp', 'assets/levelUp.wav')
 
     //Explosion animation
     for (let i = 1; i < 11; i++) {
@@ -92,7 +92,7 @@ export class GameScene extends Phaser.Scene
     this.healthText = this.add.text(this.canvas.width - 16, 16, '', { fontSize: '32px', fill: '#fff' }).setOrigin(1, 0)
     this.healthText.text = 'HP: ' + this.health
 
-    console.log(this)
+    this.levelUpText()
     level1(this)
   }
 
@@ -184,5 +184,25 @@ export class GameScene extends Phaser.Scene
       laser.body.velocity.y = -800
       setTimeout(() => this.canShoot = true, this.shootCooldown*1000)
     }
-  } 
+  }
+
+  async levelUpText() {
+    let levelUpSound = this.sound.add('levelUp')
+    levelUpSound.play({ volume: 0.30 })
+    let levelText = this.add.text(400, 300, '', { fontSize: '56px', fill: '#ff0000' }).setOrigin(0.5)
+    levelText.text = 'LEVEL ' + this.currentLevel
+    let transmissionTime = 2
+    let delayTime = 0.1
+    let amountOfSwitches = transmissionTime/delayTime
+
+    for (let i = 0; i < amountOfSwitches; i++) {
+      if (i % 2 === 0) {
+        levelText.setStyle({ fill: '#ff0000' })
+      } else {
+        levelText.setStyle({ fill: '#aaaaff' });
+      }
+      await delay(delayTime)
+    }
+    levelText.destroy()
+  }
 }
