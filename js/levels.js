@@ -1,3 +1,4 @@
+import { EnemyBlue, EnemyRed } from "./enemyClasses.js"
 import { delay } from "./helpers.js"
 
 // Level Declarations
